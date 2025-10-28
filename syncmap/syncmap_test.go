@@ -4,8 +4,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/davidsbond/x/syncmap"
 	"github.com/stretchr/testify/require"
+
+	"github.com/davidsbond/x/syncmap"
 )
 
 func TestMap(t *testing.T) {

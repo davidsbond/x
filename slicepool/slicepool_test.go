@@ -3,8 +3,9 @@ package slicepool_test
 import (
 	"testing"
 
-	"github.com/davidsbond/x/slicepool"
 	"github.com/stretchr/testify/require"
+
+	"github.com/davidsbond/x/slicepool"
 )
 
 func TestPool(t *testing.T) {
