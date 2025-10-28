@@ -15,14 +15,24 @@ type (
 	}
 )
 
-// New returns a new Slice with a specified length.
-func New[T any](length uint) *Slice[T] {
-	if length == 0 {
-		return &Slice[T]{}
+// New returns a new Slice.
+func New[T any]() *Slice[T] {
+	return &Slice[T]{
+		elems: make([]T, 0),
 	}
+}
 
+// NewLen returns a new Slice with the specified length.
+func NewLen[T any](length int) *Slice[T] {
 	return &Slice[T]{
 		elems: make([]T, length),
+	}
+}
+
+// NewLenCap returns a new Slice with the specified length and capacity.
+func NewLenCap[T any](length, cap int) *Slice[T] {
+	return &Slice[T]{
+		elems: make([]T, length, cap),
 	}
 }
 
@@ -32,6 +42,14 @@ func (s *Slice[T]) Len() int {
 	defer s.mux.RUnlock()
 
 	return len(s.elems)
+}
+
+// Cap returns the capacity of the Slice.
+func (s *Slice[T]) Cap() int {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
+	return cap(s.elems)
 }
 
 // Append an element to the Slice.

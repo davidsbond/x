@@ -3,15 +3,16 @@ package syncslice_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/davidsbond/x/syncslice"
 )
 
-func TestSlice(t *testing.T) {
+func Test_New(t *testing.T) {
 	t.Parallel()
 
-	slice := syncslice.New[string](0)
+	slice := syncslice.New[string]()
 
 	t.Run("appends", func(t *testing.T) {
 		slice.Append("a", "b", "c")
@@ -45,4 +46,21 @@ func TestSlice(t *testing.T) {
 		require.NotNil(t, act)
 		require.Equal(t, len(act), slice.Len())
 	})
+}
+
+func Test_NewLen(t *testing.T) {
+	t.Parallel()
+
+	slice := syncslice.NewLen[string](10)
+
+	assert.Equal(t, 10, slice.Len())
+}
+
+func Test_NewLenCap(t *testing.T) {
+	t.Parallel()
+
+	slice := syncslice.NewLenCap[string](5, 10)
+
+	assert.Equal(t, 5, slice.Len())
+	assert.Equal(t, 10, slice.Cap())
 }
