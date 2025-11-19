@@ -31,6 +31,9 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+          
+      - name: Run linter
+        run: go tool staticcheck ./...
 
       - name: Run tests
         run: go test -race ./...
