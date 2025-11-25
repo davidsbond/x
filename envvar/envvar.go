@@ -5,6 +5,8 @@ package envvar
 import (
 	"os"
 	"strconv"
+	"strings"
+	"time"
 )
 
 // String returns the value of the specified environment variable as a string. Returns the specified default value when
@@ -12,6 +14,14 @@ import (
 func String(key string, def string) string {
 	return parse(key, def, func(s string) (string, error) {
 		return s, nil
+	})
+}
+
+// StringSlice returns the value of the specified environment variable as a slice of strings. Returns the specified
+// default value when the environment variable is not set.
+func StringSlice(key string, sep string, def []string) []string {
+	return parse(key, def, func(s string) ([]string, error) {
+		return strings.Split(s, sep), nil
 	})
 }
 
@@ -49,6 +59,20 @@ func Uint64(key string, def uint64) uint64 {
 	return parse(key, def, func(s string) (uint64, error) {
 		return strconv.ParseUint(s, 10, 64)
 	})
+}
+
+// Time returns the value of the specified environment variable as a time.Time using the specified format. Returns the
+// specified default value when the environment variable is not set or cannot be parsed.
+func Time(key string, format string, def time.Time) time.Time {
+	return parse(key, def, func(s string) (time.Time, error) {
+		return time.Parse(format, s)
+	})
+}
+
+// Duration returns the value of the specified environment variable as a time.Duration. Returns the specified default
+// value when the environment variable is not set or cannot be parsed.
+func Duration(key string, def time.Duration) time.Duration {
+	return parse(key, def, time.ParseDuration)
 }
 
 func parse[T any](key string, def T, parser func(string) (T, error)) T {
