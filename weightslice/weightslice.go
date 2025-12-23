@@ -32,9 +32,20 @@ const (
 	Descending
 )
 
-// New returns a new Slice instance that will sort elements by weight in the specified sort order. The sort order can
-// either be Ascending or Descending. For any other value, Ascending is assumed.
-func New[T any, W cmp.Ordered](sort uint) *Slice[T, W] {
+// New returns a new Slice instance that will sort elements by weight in the specified sort order. The slice can be
+// prepopulated with the given "initial" parameter. The sort order can  either be Ascending or Descending. For any
+// other value, Ascending is assumed.
+func New[T any, W cmp.Ordered](initial []T, sort uint) *Slice[T, W] {
+	var zero W
+	elements := make([]*entry[T, W], len(initial))
+	for i := range initial {
+		elements[i] = &entry[T, W]{
+			value:  initial[i],
+			weight: zero,
+			id:     i,
+		}
+	}
+
 	compare := func(a, b *entry[T, W]) int {
 		return cmp.Compare(a.weight, b.weight)
 	}
@@ -46,7 +57,7 @@ func New[T any, W cmp.Ordered](sort uint) *Slice[T, W] {
 	}
 
 	return &Slice[T, W]{
-		elements: make([]*entry[T, W], 0),
+		elements: elements,
 		compare:  compare,
 	}
 }
@@ -59,7 +70,7 @@ func (s *Slice[T, W]) Append(value T, weight W) {
 	e := &entry[T, W]{
 		value:  value,
 		weight: weight,
-		id:     len(s.elements) + 1,
+		id:     len(s.elements),
 	}
 
 	s.elements = append(s.elements, e)

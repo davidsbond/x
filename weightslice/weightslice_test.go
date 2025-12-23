@@ -13,7 +13,7 @@ func TestWeightSlice(t *testing.T) {
 	t.Parallel()
 
 	t.Run("descending", func(t *testing.T) {
-		slice := weightslice.New[string, int](weightslice.Descending)
+		slice := weightslice.New[string, int](nil, weightslice.Descending)
 
 		for i := 0; i < 10; i++ {
 			// Add elements with weights equal to their index.
@@ -37,7 +37,7 @@ func TestWeightSlice(t *testing.T) {
 	})
 
 	t.Run("ascending", func(t *testing.T) {
-		slice := weightslice.New[string, int](weightslice.Ascending)
+		slice := weightslice.New[string, int](nil, weightslice.Ascending)
 
 		for i := 0; i < 10; i++ {
 			// Add elements with weights equal to their index.
@@ -56,6 +56,25 @@ func TestWeightSlice(t *testing.T) {
 		for _, v := range slice.Range() {
 			// 1 Should now be the first element.
 			assert.Equal(t, "1", v)
+			break
+		}
+	})
+
+	t.Run("initial slice", func(t *testing.T) {
+		slice := weightslice.New[string, int]([]string{"a", "b", "c"}, weightslice.Ascending)
+
+		for i, v := range slice.Range() {
+			// "a" should be the first element
+			assert.Equal(t, "a", v)
+
+			// Modify the weight of "a" so it comes last
+			slice.SetWeight(i, 100)
+			break
+		}
+
+		for _, v := range slice.Range() {
+			// "b" should now be the first element
+			assert.Equal(t, "b", v)
 			break
 		}
 	})
