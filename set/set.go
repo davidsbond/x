@@ -47,6 +47,12 @@ func (s *Set[T]) Clear() {
 	s.entries = make(map[T]struct{})
 }
 
+// Contains returns true if a given value is present within the Set.
+func (s *Set[T]) Contains(v T) bool {
+	_, ok := s.entries[v]
+	return ok
+}
+
 // Range over all values in the Set.
 func (s *Set[T]) Range() iter.Seq[T] {
 	return func(yield func(T) bool) {

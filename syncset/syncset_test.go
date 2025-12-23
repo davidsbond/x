@@ -21,6 +21,7 @@ func TestSet(t *testing.T) {
 
 		m.Put(k)
 		require.Equal(t, 1, m.Len())
+		require.True(t, m.Contains(k))
 	})
 
 	t.Run("lists values", func(t *testing.T) {

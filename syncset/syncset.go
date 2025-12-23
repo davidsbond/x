@@ -62,6 +62,14 @@ func (s *Set[T]) Clear() {
 	s.s.Clear()
 }
 
+// Contains returns true if a given value is present within the Set.
+func (s *Set[T]) Contains(v T) bool {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
+	return s.s.Contains(v)
+}
+
 // Range over all values in the Set.
 func (s *Set[T]) Range() iter.Seq[T] {
 	return func(yield func(T) bool) {
