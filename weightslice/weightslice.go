@@ -18,7 +18,7 @@ type (
 		compare  func(a, b *entry[T, W]) int
 	}
 
-	entry[V any, Weight comparable] struct {
+	entry[V any, Weight cmp.Ordered] struct {
 		value  V
 		weight Weight
 		id     int
