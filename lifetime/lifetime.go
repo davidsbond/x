@@ -20,6 +20,7 @@ type (
 		err        error
 		cancel     context.CancelFunc
 		expireOnce sync.Once
+		reset      chan time.Duration
 	}
 )
 
@@ -37,6 +38,10 @@ func New[T io.Closer](value T, lifetime time.Duration) *Lifetime[T] {
 	lt := Lifetime[T]{
 		value:  value,
 		cancel: cancel,
+		// This channel is used to signal that the timer is to be reset, it must be kept as a buffered size of 1
+		// and is used in a "last write wins" fashion. When calling Lifetime.Reset we'll drain this channel if
+		// there are pending writes.
+		reset: make(chan time.Duration, 1),
 	}
 
 	go lt.wait(ctx, lifetime)
@@ -74,16 +79,59 @@ func (lt *Lifetime[T]) Expire() {
 	})
 }
 
+// Reset the lifetime to a new duration. This modifies the expiration to occur after the given duration and does not
+// add additional time to any remaining lifetime.
+func (lt *Lifetime[T]) Reset(lifetime time.Duration) error {
+	lt.mutex.RLock()
+
+	if lt.expired {
+		lt.mutex.RUnlock()
+		return ErrExpired
+	}
+
+	lt.mutex.RUnlock()
+
+	// To keep this method from blocking, we'll attempt to write directly to the reset channel, if it blocks, we'll
+	// drain it ourselves and rewrite to it.
+	select {
+	case lt.reset <- lifetime:
+		break
+	default:
+		<-lt.reset
+		lt.reset <- lifetime
+	}
+
+	return nil
+}
+
 func (lt *Lifetime[T]) wait(ctx context.Context, lifetime time.Duration) {
 	timer := time.NewTimer(lifetime)
 	defer timer.Stop()
 
-	// Here, we wait for either the lifetime to pass or if manual expiration has
-	// been triggered. Once either of these conditions are met we close the io.Closer.
-	select {
-	case <-ctx.Done():
-	case <-timer.C:
-	}
+	for {
+		// The two conditions for lifetimes expiring is the context is canceled (A call to Lifetime.Expire) or the
+		// lifetime has expired naturally.
+		select {
+		case <-ctx.Done():
+			lt.Expire()
+			return
+		case <-timer.C:
+			lt.Expire()
+			return
+		case lifetime = <-lt.reset:
+			if !timer.Stop() {
+				select {
+				// If we can't stop the timer because it has a queued tick in its channel, we'll first drain that
+				// then call Reset.
+				case <-timer.C:
+					break
+				default:
+					break
+				}
+			}
 
-	lt.Expire()
+			timer.Reset(lifetime)
+			continue
+		}
+	}
 }

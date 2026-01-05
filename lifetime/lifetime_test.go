@@ -52,7 +52,7 @@ func TestLifetime(t *testing.T) {
 		expected := &mockCloser{}
 		lt := lifetime.New(expected, time.Second/2)
 
-		<-time.After(time.Second / 2)
+		<-time.After(time.Second)
 		actual, err := lt.Value()
 		require.Error(t, err)
 		require.Nil(t, actual)
@@ -69,5 +69,32 @@ func TestLifetime(t *testing.T) {
 		require.Nil(t, actual)
 		assert.True(t, expected.closed)
 		assert.True(t, errors.Is(err, io.EOF))
+	})
+
+	t.Run("lifetime can be reset", func(t *testing.T) {
+		expected := &mockCloser{}
+		lt := lifetime.New(expected, time.Minute)
+
+		actual, err := lt.Value()
+		require.NoError(t, err)
+		require.NotNil(t, actual)
+		assert.False(t, expected.closed)
+
+		require.NoError(t, lt.Reset(time.Second/2))
+		<-time.After(time.Second)
+
+		actual, err = lt.Value()
+		require.Error(t, err)
+		require.Nil(t, actual)
+		assert.True(t, expected.closed)
+	})
+
+	t.Run("can't call reset on expired lifetime", func(t *testing.T) {
+		expected := &mockCloser{}
+		lt := lifetime.New(expected, time.Second/2)
+
+		<-time.After(time.Second)
+		require.Error(t, lt.Reset(time.Second))
+		assert.True(t, expected.closed)
 	})
 }
