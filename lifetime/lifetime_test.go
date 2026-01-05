@@ -35,6 +35,7 @@ func TestLifetime(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, actual)
 		assert.False(t, expected.closed)
+		assert.False(t, lt.Expired())
 	})
 
 	t.Run("value can be manually expired", func(t *testing.T) {
@@ -46,6 +47,7 @@ func TestLifetime(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, actual)
 		assert.True(t, expected.closed)
+		assert.True(t, lt.Expired())
 	})
 
 	t.Run("value expires after timeout", func(t *testing.T) {
@@ -57,6 +59,7 @@ func TestLifetime(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, actual)
 		assert.True(t, expected.closed)
+		assert.True(t, lt.Expired())
 	})
 
 	t.Run("lifetime returns any close errors", func(t *testing.T) {
@@ -69,6 +72,7 @@ func TestLifetime(t *testing.T) {
 		require.Nil(t, actual)
 		assert.True(t, expected.closed)
 		assert.True(t, errors.Is(err, io.EOF))
+		assert.True(t, lt.Expired())
 	})
 
 	t.Run("lifetime can be reset", func(t *testing.T) {
@@ -79,6 +83,7 @@ func TestLifetime(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, actual)
 		assert.False(t, expected.closed)
+		assert.False(t, lt.Expired())
 
 		require.NoError(t, lt.Reset(time.Second/2))
 		<-time.After(time.Second)
@@ -87,6 +92,7 @@ func TestLifetime(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, actual)
 		assert.True(t, expected.closed)
+		assert.True(t, lt.Expired())
 	})
 
 	t.Run("can't call reset on expired lifetime", func(t *testing.T) {

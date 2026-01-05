@@ -65,6 +65,14 @@ func (lt *Lifetime[T]) Value() (T, error) {
 	return lt.value, nil
 }
 
+// Expired returns true if this lifetime has expired.
+func (lt *Lifetime[T]) Expired() bool {
+	lt.mutex.RLock()
+	defer lt.mutex.RUnlock()
+
+	return lt.expired
+}
+
 // Expire causes immediate expiration of the underlying io.Closer.
 func (lt *Lifetime[T]) Expire() {
 	lt.expireOnce.Do(func() {
