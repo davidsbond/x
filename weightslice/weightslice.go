@@ -110,3 +110,14 @@ func (s *Slice[T, W]) Range() iter.Seq2[int, T] {
 		}
 	}
 }
+
+// Reset all weights within the slice to their zero value.
+func (s *Slice[T, W]) Reset() {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	var zero W
+	for _, e := range s.elements {
+		e.weight = zero
+	}
+}

@@ -78,4 +78,21 @@ func TestWeightSlice(t *testing.T) {
 			break
 		}
 	})
+
+	t.Run("resets slice", func(t *testing.T) {
+		slice := weightslice.New[string, int]([]string{"a", "b", "c"}, weightslice.Ascending)
+
+		for i, v := range slice.Range() {
+			// "a" should be the first element
+			assert.Equal(t, "a", v)
+
+			// Modify the weight of "a" so it comes last
+			slice.SetWeight(i, 100)
+			break
+		}
+
+		// We don't have a mechanism for introspecting the weights for now so this test pretty
+		// much just makes sure we don't block indefinitely or panic.
+		slice.Reset()
+	})
 }
